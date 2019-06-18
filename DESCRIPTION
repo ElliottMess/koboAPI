@@ -1,18 +1,18 @@
 Package: koboAPI
 Type: Package
-Title: Link Kobotoolbox
+Title: Link kobotoolbox-based API with R.
 Version: 0.1.0
-Author: Elliott Messeiller, Edouard Legoupil, Punya Prasad Sapkota
-Maintainer: elliott.messeiller@gmail.com
+Authors@R: person("Elliott", "Messeiller", email = "elliott.messeiller@acted.org", role = c("aut", "cre"))
 Depends: 
   httr,
   jsonlite,
   dplyr,
   tidyr,
   lubridate,
-  xlsx,
   readr,
   stringr
-License: What license is it under?
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Description: Provides fonctions to access kobotoolbox-based API with R. Works for kobo.humanitarianresponse.info and kobotoolbox.org
+RoxygenNote: 6.1.1
