@@ -1,0 +1,18 @@
+Package: koboAPI
+Type: Package
+Title: Link Kobotoolbox
+Version: 0.1.0
+Author: Elliott Messeiller, Edouard Legoupil, Punya Prasad Sapkota
+Maintainer: elliott.messeiller@gmail.com
+Depends: 
+  httr,
+  jsonlite,
+  dplyr,
+  tidyr,
+  lubridate,
+  xlsx,
+  readr,
+  stringr
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true

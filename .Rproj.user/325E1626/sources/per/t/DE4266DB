@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1560873759176.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "341574680",
+    "id" : "DE4266DB",
+    "lastKnownWriteTime" : 1560878895,
+    "last_content_update" : 1560878895246,
+    "path" : "~/GitHub/koboAPI/R/koboAPI.R",
+    "project_path" : "R/koboAPI.R",
+    "properties" : {
+        "cursorPosition" : "304,29",
+        "scrollLine" : "293"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
