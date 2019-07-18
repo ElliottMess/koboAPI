@@ -288,41 +288,18 @@ kobo_create_export<-function(asset_uid, kobo_user, Kobo_pw ="", api="https://kob
 #' @author Elliott Messeiller
 #'
 #' @export kobo_AddstartCol_SelectMultiple
-
-
-
 kobo_AddstartCol_SelectMultiple<- function(data, form, seperator = "\\/"){
   survey <- form$survey
-  all_selectMultiple <- survey[survey$type == "select_multiple","name"]
+  all_selectMultiple <- survey[survey$type == "select_multiple", "name"]
 
   if(length(all_selectMultiple)==0){warning(paste0("No select_multiple question found with. Please double check that you have select_multiple qustions in your form."))}
 
   expr_firstCol <- paste0(all_selectMultiple, seperator, ".*?$")
 
-
-
-  potential_selectm <- tibble(name = names(data[,grepl(paste0("\\."),names(data))]))
-
-  if(nrow(potential_selectm)==0){warning(paste0("No choices found with. Please double check that you have select_multiple qustions in your form."))}
-
-  choices_split <- str_split(potential_selectm$name, "\\.", simplify = TRUE)
-  if(ncol(choices_split)>3){stop("You probably have a forward slash in a choice (e.g. 'N/A'). Please remove it from the raw data.")}
-
-  questions <- data.frame(name=unique(choices_split[,1]), stringsAsFactors = FALSE)
-  q_frame = data.frame(q=rep(0, nrow(data)))
-  for(i in 1:nrow(questions)){
-    questions[i, "first_occ"] <- grep(paste0("^", questions[i, "name"], "\\..*?"),names(data))[1]
-    names(q_frame) <- questions[i, "name"]
-    data <- as.data.frame(append(data, q_frame, after = questions[i, "first_occ"]-1), make.names=FALSE)
-    questions$first_occ <- questions$first_occ+1
-  }
-
-  return(data)
-
-
-
-  return(data)
-
+  indices <- map(expr_firstcol, grep, names(data))
+  min_indices <- map_dbl(indices, min)
+  new_data <- map2(min_indices, all_selectMultiple, ~ add_column(data, .y = NA, .before = .x))
+  return(new_data)
 }
 
 
