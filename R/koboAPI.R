@@ -142,6 +142,7 @@ kobo_all_exports <- function(user,pwd="", api="https://kobo.humanitarianresponse
 #' @param user Optional. A single string indicating the username
 #' @param pwd Password of the Kobo account to use
 #' @param api The URL at which the API can be accessed. Default to "kobo.humanitarianresponse.info"
+#' @param seperator Separator used between select_multiple questions and their choices. Must be a regex expression. Default to forward slash
 #' @return A dataframe containing the data, with no group names.
 #'
 #' @author Elliott Messeiller
@@ -150,7 +151,7 @@ kobo_all_exports <- function(user,pwd="", api="https://kobo.humanitarianresponse
 #'
 
 
-kobo_data <- function(formid, user,pwd, api="https://kobo.humanitarianresponse.info", select_multiple_sep="/") {
+kobo_data <- function(formid, user,pwd, api="https://kobo.humanitarianresponse.info", seperator="\\/") {
   if(pwd == ""){pwd <- readline("Enter password:")}
   if(pwd == "") stop("No password entered.")
   all_forms <- kobo_all_forms(user, pwd, api)
@@ -164,7 +165,6 @@ kobo_data <- function(formid, user,pwd, api="https://kobo.humanitarianresponse.i
   raw_data <- read_csv(raw_data, na = c("", "NA", "n/a"))
 
   raw_data <- kobo_noGroupsHeader(raw_data, formid, pwd, user, api)
-  names(raw_data) <- gsub("\\/","\\.", names(raw_data))
 
   raw_data <- kobo_AddstartSelectMultiple(raw_data)
   names(raw_data) <- gsub("\\.","\\/", names(raw_data))
@@ -184,6 +184,7 @@ kobo_data <- function(formid, user,pwd, api="https://kobo.humanitarianresponse.i
 #' @param formid The ID of the form to be accessed (as a character string)
 #' @param user Optional. A single string indicating the username
 #' @param api The URL at which the API can be accessed. Default to "kobo.humanitarianresponse.info"
+#' @param seperator Separator used between select_multiple questions and their choices. Must be a regex expression. Default to forward slash
 #' @return A dataframe without groups in headers.
 #'
 #' @author Elliott Messeiller
@@ -192,21 +193,18 @@ kobo_data <- function(formid, user,pwd, api="https://kobo.humanitarianresponse.i
 #'
 
 
-kobo_noGroupsHeader <- function(data,formid, pwd, user, api="https://kobo.humanitarianresponse.info") {
+kobo_noGroupsHeader <- function(data,formid, pwd, user, api="https://kobo.humanitarianresponse.info", seperator = "\\/") {
 
   if(pwd == ""){pwd <- readline("Enter password:")}
   if(pwd == "") stop("No password entered.")
 
   form <-kobo_form(formid, user , api)
   survey_sheet <- form$survey
-  groups <- paste0(as.list(survey_sheet%>%filter(type %in% c("begin_group", "begin group"))%>% select(name))[[1]],"/")
-  remove_groups <- function(headers, groups){
-    for (i in seq_along(groups)){
-      headers <- str_remove_all(headers, groups[i])
-    }
-    return(headers)
-  }
-  names(data) <- remove_groups(names(data), groups)
+  groups <- paste0(as.list(survey_sheet%>%filter(type %in% c("begin_group", "begin group"))%>% select(name))[[1]],seperator)
+  groups <- c(groups, paste0("meta", seperator))
+  collapse_groups <- str_c(groups, collapse = "|")
+  groups_removed <- map(names(data), str_remove, collapse_groups)
+  names(data) <- groups_removed
   return(data)
 
 }
@@ -279,14 +277,36 @@ kobo_create_export<-function(asset_uid, kobo_user, Kobo_pw ="", api="https://kob
   return(result$status_code)
 }
 
+#' @name kobo_AddstartCol_SelectMultiple
+#' @rdname kobo_AddstartCol_SelectMultiple
+#' @title  Adds a list column with the choices selected at the beggining of select_multiple questions
+#' @description Adds a list column with the choices selected at the beggining of select_multiple questions
+#' @param data The dataframe to be treated.
+#' @param form A list with two objects: The "survey" sheet as a dataframe with all the questions variables, and the "choices" sheet as a dataframe with all the choices variables. See kobo_form()
+#' @param seperator Separator used between select_multiple questions and their choices. Must be a regex expression. Default to forward slash
+#' @return Returns data with the additional columns
+#' @author Elliott Messeiller
+#'
+#' @export kobo_AddstartCol_SelectMultiple
 
-kobo_AddstartSelectMultiple<- function(data){
-  potential_selectm <- data.frame(name = names(data[,grepl(paste0("\\."),names(data))]))
+
+
+kobo_AddstartCol_SelectMultiple<- function(data, form, seperator = "\\/"){
+  survey <- form$survey
+  all_selectMultiple <- survey[survey$type == "select_multiple","name"]
+
+  if(length(all_selectMultiple)==0){warning(paste0("No select_multiple question found with. Please double check that you have select_multiple qustions in your form."))}
+
+  expr_firstCol <- paste0(all_selectMultiple, seperator, ".*?$")
+
+
+
+  potential_selectm <- tibble(name = names(data[,grepl(paste0("\\."),names(data))]))
 
   if(nrow(potential_selectm)==0){warning(paste0("No choices found with. Please double check that you have select_multiple qustions in your form."))}
 
   choices_split <- str_split(potential_selectm$name, "\\.", simplify = TRUE)
-  if(ncol(choices_split)>2){stop("You probably have a forward slash in a choice (e.g. 'N/A'). Please remove it from the raw data.")}
+  if(ncol(choices_split)>3){stop("You probably have a forward slash in a choice (e.g. 'N/A'). Please remove it from the raw data.")}
 
   questions <- data.frame(name=unique(choices_split[,1]), stringsAsFactors = FALSE)
   q_frame = data.frame(q=rep(0, nrow(data)))
@@ -299,7 +319,12 @@ kobo_AddstartSelectMultiple<- function(data){
 
   return(data)
 
+
+
+  return(data)
+
 }
+
 
 nullToNA <- function(x) {
   x[sapply(x, is.null)] <- NA
