@@ -6,7 +6,7 @@ As of November 2019, KoBoToolbox has two version of its API: KC and KPI, the lat
 ## Installation
 
 ```r
-devtools:install_github("EliottMess/koboAPI")
+devtools::install_github("EliottMess/koboAPI")
 ```
 
 ## Main Functions
