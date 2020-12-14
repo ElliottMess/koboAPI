@@ -19,6 +19,13 @@ download_form <- function(formid, user, pwd =NULL, api="https://kobo.humanitaria
   if(!exists('pwd') || (pwd == "" || is.null(pwd))){pwd <- readline("Enter password:")}
   if(pwd == "") stop("No password entered.")
 
+  if(!is.na(suppressWarnings(as.integer(formid)))){
+    old_id <- formid
+    formid <- old2new_id(formid, download_forms_all)
+  }else{
+    old_id <- new2old_id(formid, download_forms_all)
+  }
+
   url_form <- paste0(api, "/assets/", formid, "/")
   raw_form <- GET(url_form, authenticate(user, pwd), progress())
   raw_form_text <- content(raw_form, "text", encoding = "UTF-8")
@@ -156,8 +163,12 @@ download_data <- function(formid, user,pwd, api="https://kobo.humanitarianrespon
   if(pwd == "") stop("No password entered.")
   download_forms_all <- download_forms_all(user, pwd, api)
 
-  old_id <- as.character(download_forms_all%>%filter(uid == formid)%>%select(old_id))
-  old_id <- as.character(download_forms_all[download_forms_all$uid == formid, 'old_id'])
+  if(!is.na(suppressWarnings(as.integer(formid)))){
+    old_id <- formid
+    formid <- old2new_id(formid, download_forms_all)
+  }else{
+    old_id <- new2old_id(formid, download_forms_all)
+  }
 
   type_api <- api_type(api)
   if(type_api == 'humanitarianresponse.info'){
@@ -279,4 +290,56 @@ create_export<-function(asset_uid, user, pwd ="", api="https://kobo.humanitarian
                       progress()
   )
   return(result$status_code)
+}
+
+#' Convert form old ID type and return newer ID structure
+#'
+#' @param formid character string with form id in old format (e.g. '390825')
+#' @param all_forms dataframe containing all the forms linked to the account, as extracted by \link{koboAPI::download_forms_all()}
+#'
+#' @return a character string with the new format
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' old2new_id("390825", all_forms)
+#' }
+old2new_id <- function(formid, all_forms){
+  if(!is.character(formid))stop("formid must be a character string")
+  if(!is.data.frame(all_forms))stop("all_forms must be a dataframe")
+
+  if(!is.na(suppressWarnings(as.integer(formid)))){
+    old_id <- formid
+    formid <- as.character(all_forms%>%filter(old_id == formid)%>%select(uid))
+  }else{
+    stop("Inputed string ID cannot be converted to new ID.")
+  }
+
+  return(formid)
+}
+
+#' Convert form old ID type and return newer ID structure
+#'
+#' @param formid character string with form id in old format (e.g. 'ay7pkD95i7SLCWy5XkBBZi')
+#' @param all_forms dataframe containing all the forms linked to the account, as extracted by \link{koboAPI::download_forms_all()}
+#'
+#' @return a character string with the new format
+#' @export
+#'
+#'@example
+#' \dontrun{
+#' new2old_id("ay7pkD95i7SLCWy5XkBBZi", all_forms)
+#' }
+new2old_id <- function(formid, all_forms){
+  if(!is.character(formid))stop("formid must be a character string")
+  if(!is.data.frame(all_forms))stop("all_forms must be a dataframe")
+
+  if(is.na(suppressWarnings(as.integer(formid)))){
+    old_id <- as.character(all_forms[all_forms$uid == formid, "old_id"])
+  }else{
+    stop("Inputed string ID cannot be converted to old ID format")
+  }
+
+  return(old_id)
+
 }
