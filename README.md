@@ -1,4 +1,11 @@
 # koboAPI
+
+<!-- badges: start -->
+
+[![R-CMD-check](https://github.com/ElliottMess/koboAPI/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ElliottMess/koboAPI/actions/workflows/R-CMD-check.yaml)
+[![test-coverage](https://github.com/ElliottMess/koboAPI/actions/workflows/test-coverage.yml/badge.svg)](https://github.com/ElliottMess/koboAPI/actions/workflows/test-coverage.yml)
+<!-- badges: end -->
+
 koboAPI is a package to access and interact with [KoboToolbox](https://www.kobotoolbox.org/)-based APIs via R. The package technically supports any API that is based on KoboToolbox. It is however made simpler for [KoboToolbox](https://www.kobotoolbox.org/) and [humanitarianresponse.info](https://kobo.humanitarianresponse.info/) servers.
 
 KoboAPI provides simple functions to retrieve forms and data set from KoboToolbox.
